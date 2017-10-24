@@ -1,5 +1,6 @@
 {
   "ok": true,
-  "amount": 550,
-  "item": [ "502", "C004" ]
+  "amount" : 550,
+  "item"   : [ "502" ],
+  "coupon" : [ "C004" ]
 }
