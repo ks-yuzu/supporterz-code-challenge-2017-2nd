@@ -10,6 +10,7 @@ use open IO => qw/:encoding(UTF-8) :std/;
 use Mojolicious::Lite;
 use DBI;
 use List::Util qw/sum/;
+use List::MoreUtils qw/pairwise/;
 use JSON;
 
 use DDP;
@@ -53,53 +54,44 @@ sub process_req {
 
   # データベース
   my $dbi = DBI->connect("dbi:SQLite:dbname=scc_lv2.sqlite");
-  initialize_db($dbi);
+  create_db($dbi);                      # 無ければ作成される
 
-  # 注文とクーポンの ID チェック
+  # 注文とクーポン ID の有効性チェック
   return +{ ok => JSON::false, message => 'item_not_found' }
     unless is_valid_request($dbi, \%orders, \%coupons);
 
-  # 無効クーポンの削除
-  delete_unnecessary_coupons($dbi, \%orders, \%coupons);
-
-  # 適用可能なセットと価格差の一覧を作成
+  # 適用可能なセットを抽出
+  # (セットID, セット要素1 ID, セット要素2 ID, セット要素3 ID, 価格減少, クーポン使用数減少を返す)
   my $available_sets = get_available_set_list($dbi, [keys %orders], [keys %coupons]);
-  p $available_sets;
-  # TODO: ここ
 
-  # 価格が小さくなるもののみの一覧
-  # TODO: == 0 の時はクーポンの数で判定 -> 最適化で？
-  $available_sets = [ grep { $_->[4] >= 0 } @$available_sets ];
+  # (クーポンを考慮して) 価格が小さくなるセットのみ抽出
+  # 価格が同じ場合は, クーポンの使用枚数が少なくなるセットのみ抽出
+  $available_sets = [ grep { $_->[4] >= 0 || ($_->[4] == 0 && $_->[5] > 0) } @$available_sets ];
 
   # 全セットが適用できるかチェック
   my %cnt = ();
   for my $set ( @{ $available_sets } ) {
     $cnt{ $set->[1] }++;  $cnt{ $set->[2] }++;  $cnt{ $set->[3] }++;
   }
+  my $f_select_sets = grep { $orders{$_} < $cnt{$_} } keys %cnt;
 
-  my $f_applicable_all_sets = ! grep { $orders{$_} < $cnt{$_} } keys %cnt;
-
-  # 最適化 (必要があれば)
-  # TODO: == 0 の時はクーポンの数で判定
-  if ( not $f_applicable_all_sets ) {
-    # TODO: どのセットを適用するか最適化問題を解く
-    say STDERR '[error] set optimizeation (unsupported)';
-    die "unsupported.";
+  # 全セットが適用できなければ最適化
+  if ( $f_select_sets ) {
+    # どのセットを適用するか最適化問題を解く
+    $available_sets = optimize_set_menu(\%orders, \%coupons, $available_sets);
   }
 
-  # 品目の決定
+  # 品目の決定 (単品を減らして, セットを増やす)
   for my $set ( @$available_sets ) {
     $orders{ $set->[0] }++;
-    $orders{ $set->[1] }--;
-    $orders{ $set->[2] }--;
-    $orders{ $set->[3] }--;
+    $orders{ $set->[1] }--;  $orders{ $set->[2] }--;  $orders{ $set->[3] }--;
   }
 
-  # TODO: 合計金額の算出 (DB 側で実行？)
-  my $res = get_total_value($dbi, \%orders, \%coupons); # TODO: 命名
-  my $amount  = sum map { $_->[1] } @$res;
-  my $items   = [ sort map { $_->[0] } @$res ];
-  my $coupons = [ sort map { $_->[2] // () } @$res ]; # クーポン欄の undef は削除
+  # 合計金額および明細の算出
+  my $details = get_total_value($dbi, \%orders, \%coupons);
+  my $amount  = sum map { $_->[1] } @$details;
+  my $items   = [ sort map { $_->[0] } @$details ];
+  my $coupons = [ sort map { $_->[2] // () } @$details ]; # クーポン欄の undef は削除
 
   $dbi->disconnect;
 
@@ -115,19 +107,12 @@ sub process_req {
 sub is_valid_request {
   my ($dbi, $orders, $coupons) = @_;
 
-  # TODO: エラーチェック用に最適化
   my $res = {
     items   => [ map { get_item($dbi, $_)   } keys %$orders  ],
     coupons => [ map { get_coupon($dbi, $_) } keys %$coupons ],
   };
 
   return not (( grep { !defined } @{$res->{items}} ) || ( grep { !defined } @{$res->{coupons}} ));
-}
-
-
-sub delete_unnecessary_coupons {
-  my ($dbi, $orders, $coupons) = @_;
-  # TODO: unsupported
 }
 
 
@@ -151,9 +136,9 @@ used_coupons as (
 
 available_sets as (
   select * from sets
-    where elm1 in (select id from ordered_items)
-      and elm2 in (select id from ordered_items)
-      and elm3 in (select id from ordered_items)
+    where elm1 in (select id from ordered_items) -- セットの要素の ID
+      and elm2 in (select id from ordered_items) -- セットの要素の ID
+      and elm3 in (select id from ordered_items) -- セットの要素の ID
 ),
 
 enabled_single_coupons as (
@@ -170,20 +155,24 @@ enabled_set_coupons as (
 
 sets_without_set_coupons as (
   select
-    available_sets.id,
+    available_sets.id,                  -- セットの ID
     available_sets.elm1,
     available_sets.elm2,
     available_sets.elm3,
-    values1.value + values2.value + values3.value + sum(enabled_single_coupons.value)
-      - available_sets.value as value_without_set_coupons
+    values1.value + values2.value + values3.value
+      + ifnull(sum(enabled_single_coupons.value), 0)
+      - available_sets.value
+      as value_without_set_coupons,     -- セット用クーポン抜きの合計金額
+    count(enabled_single_coupons.value)
+      as coupon_num_without_set_coupons -- 単品の場合に使用するクーポンの枚数
 
     from available_sets
       inner join ordered_items as values1 on (available_sets.elm1 = values1.id)
       inner join ordered_items as values2 on (available_sets.elm2 = values2.id)
       inner join ordered_items as values3 on (available_sets.elm3 = values3.id)
-      inner join enabled_single_coupons on enabled_single_coupons.target_id in (elm1, elm2, elm3)
+      left  join enabled_single_coupons on enabled_single_coupons.target_id in (elm1, elm2, elm3)
     group by
-      available_sets.id
+      available_sets.elm1, available_sets.elm2, available_sets.elm3
 )
 
 select
@@ -191,10 +180,16 @@ select
   sets_without_set_coupons.elm1,
   sets_without_set_coupons.elm2,
   sets_without_set_coupons.elm3,
-  sets_without_set_coupons.value_without_set_coupons - ifnull(enabled_set_coupons.value, 0)
+  -- セットを適用することで何円安くなるか
+  sets_without_set_coupons.value_without_set_coupons - ifnull(enabled_set_coupons.value, 0),
+  -- 使用するクーポンが何枚減るか
+  sets_without_set_coupons.coupon_num_without_set_coupons - count(enabled_set_coupons.value)
 
   from sets_without_set_coupons
     left join enabled_set_coupons on enabled_set_coupons.target_id = sets_without_set_coupons.id
+
+  group by                      -- count でまとめない
+    sets_without_set_coupons.elm1, sets_without_set_coupons.elm2, sets_without_set_coupons.elm3
 ;
 EOF
   );
@@ -243,8 +238,58 @@ EOF
 }
 
 
+sub optimize_set_menu {
+  my ($orders, $coupons, $available_sets) = @_;
+
+  # NOTE:
+  #   本来は整数線形計画問題として解くべきだが,
+  #   Gist に上げる都合で, (時間はかかるが) 素朴な探索を行う.
+
+  my @best_selected_sets = ();
+  my $best_value_reduction = 0;
+  my $best_coupons_reduction = 0;
+
+  # ビット列をセットの適用パターンとして, 最適パターンを求める
+  my $num_sets = scalar @$available_sets;
+  for ( 1 .. (2 ** $num_sets - 1) ) {
+    my $pattern_str   = sprintf "%0${num_sets}b", $_; # ビット列変換
+    my @set_pattern = split '', $pattern_str;       # 各ビットを要素とする配列
+
+    # 対応する @set_pattern の要素が 1 となるセットのみ抽出
+    my @selected_sets = pairwise { $a ? $b : () } @set_pattern, @$available_sets;
+
+    # 適用するセットから, 必要な品目数と価格&クーポン数削減を求める
+    my %necessary_items = ();
+    my $value_reduction = 0;
+    my $coupons_reduction = 0;
+
+    for my $set ( @selected_sets ) {
+      $necessary_items{ $set->[1] }++;
+      $necessary_items{ $set->[2] }++;
+      $necessary_items{ $set->[3] }++;
+      $value_reduction   += $set->[4];
+      $coupons_reduction += $set->[5];
+    }
+
+    # セットに必要な品目数が足りているかチェック
+    my @insufficient_items = grep { $necessary_items{$_} > $orders->{$_} } keys %necessary_items;
+    next if @insufficient_items;        # 不足していれば次の候補へ
+
+    # 安いかどうか → 同じならクーポンで
+    if ( $value_reduction > $best_value_reduction
+     || ($value_reduction == $best_value_reduction && $coupons_reduction > $best_coupons_reduction)
+    ) {
+      @best_selected_sets = @selected_sets;
+      $best_value_reduction = $value_reduction;
+      $best_coupons_reduction = $coupons_reduction;
+    }
+  }
+
+  return \@best_selected_sets;
+}
+
 ####################  for debug  ####################
-sub initialize_db {
+sub create_db {
   my $dbi = shift;
   my %tables_info = (
     items   => ['id', 'category', 'name', 'value'],
