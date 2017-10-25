@@ -306,7 +306,7 @@ sub create_db {
 
     if ( not $f_exists ) {
       say STDERR "Initialize table $table_name";
-      my $data = require "${table_name}.dat";
+      my $data = require "dat/${table_name}.dat";
 
       my $columns_str = join ',', @{ $tables_info{$table_name} };
       my $holder_str  = join ',', map {'?'} @{ $tables_info{$table_name} };
