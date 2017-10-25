@@ -60,38 +60,14 @@ sub process_req {
   return +{ ok => JSON::false, message => 'item_not_found' }
     unless is_valid_request($dbi, \%orders, \%coupons);
 
-  # 適用可能なセットを抽出
-  # (セットID, セット要素1 ID, セット要素2 ID, セット要素3 ID, 価格減少, クーポン使用数減少を返す)
-  my $available_sets = get_available_set_list($dbi, [keys %orders], [keys %coupons]);
-
-  # (クーポンを考慮して) 価格が小さくなるセットのみ抽出
-  # 価格が同じ場合は, クーポンの使用枚数が少なくなるセットのみ抽出
-  $available_sets = [ grep { $_->[4] >= 0 || ($_->[4] == 0 && $_->[5] > 0) } @$available_sets ];
-
-  # 全セットが適用できるかチェック
-  my %cnt = ();
-  for my $set ( @{ $available_sets } ) {
-    $cnt{ $set->[1] }++;  $cnt{ $set->[2] }++;  $cnt{ $set->[3] }++;
-  }
-  my $f_select_sets = grep { $orders{$_} < $cnt{$_} } keys %cnt;
-
-  # 全セットが適用できなければ最適化
-  if ( $f_select_sets ) {
-    # どのセットを適用するか最適化問題を解く
-    $available_sets = optimize_set_menu(\%orders, \%coupons, $available_sets);
-  }
-
-  # 品目の決定 (単品を減らして, セットを増やす)
-  for my $set ( @$available_sets ) {
-    $orders{ $set->[0] }++;
-    $orders{ $set->[1] }--;  $orders{ $set->[2] }--;  $orders{ $set->[3] }--;
-  }
+  # 最適なメニューおよびの組合せを求める
+  optimize_orders_and_coupons($dbi, \%orders, \%coupons);
 
   # 合計金額および明細の算出
   my $details = get_total_value($dbi, \%orders, \%coupons);
   my $amount  = sum map { $_->[1] } @$details;
   my $items   = [ sort map { $_->[0] } @$details ];
-  my $coupons = [ sort map { $_->[2] // () } @$details ]; # クーポン欄の undef は削除
+  my $coupons = [ sort map { $_->[2] // () } @$details ]; # undef なら削除
 
   $dbi->disconnect;
 
@@ -116,13 +92,43 @@ sub is_valid_request {
 }
 
 
+sub optimize_orders_and_coupons {
+  my ($dbi, $orders, $coupons) = @_;
+
+  # 適用可能なセットを抽出
+  # (セットID, セット要素1 ID, セット要素2 ID, セット要素3 ID, 価格減少, クーポン使用数減少を返す)
+  my $available_sets = get_available_set_list($dbi, [keys %$orders], [keys %$coupons]);
+
+  # (クーポンを考慮して) 価格が小さくなるセットのみ抽出
+  # 価格が同じ場合は, クーポンの使用枚数が少なくなるセットのみ抽出
+  $available_sets = [ grep { $_->[4] >= 0 || ($_->[4] == 0 && $_->[5] > 0) } @$available_sets ];
+
+  # 全セットが適用できるかチェック
+  my %cnt = ();
+  for my $set ( @{ $available_sets } ) {
+    $cnt{ $set->[1] }++;  $cnt{ $set->[2] }++;  $cnt{ $set->[3] }++;
+  }
+  my $f_select_sets = grep { $orders->{$_} < $cnt{$_} } keys %cnt;
+
+  # 全セットが適用できなければ最適化
+  if ( $f_select_sets ) {
+    # どのセットを適用するか最適化問題を解く
+    $available_sets = optimize_set_menu($orders, $coupons, $available_sets);
+  }
+
+  # 品目の決定 (単品を減らして, セットを増やす)
+  for my $set ( @$available_sets ) {
+    $orders->{ $set->[0] }++;
+    $orders->{ $set->[1] }--;  $orders->{ $set->[2] }--;  $orders->{ $set->[3] }--;
+  }
+}
+
+
 sub get_available_set_list {
   my ($dbi, $orders, $coupons) = @_;
 
-  my $order_placeholders  = '?,' x scalar @$orders;
-  chop $order_placeholders;  # 最後のコンマを削除
-  my $coupon_placeholders = '?,' x scalar @$coupons;
-  chop $coupon_placeholders; # 最後のコンマを削除
+  my $order_placeholders  = join( ',',  ('?') x scalar @$orders );
+  my $coupon_placeholders = join( ',',  ('?') x scalar @$coupons );
 
   my $st = $dbi->prepare( <<EOF
 with
