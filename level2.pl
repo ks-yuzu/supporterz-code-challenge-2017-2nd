@@ -1,6 +1,8 @@
 #!/usr/bin/env perl
 
 # Level.2 - Code Challenge 2017 2nd
+#   The repository containing all files including DB data and tests is here:
+#   https://github.com/ks-yuzu/supporterz-code-challenge-2017-2nd
 
 use v5.24;
 use warnings;
@@ -9,11 +11,12 @@ use open IO => qw/:encoding(UTF-8) :std/;
 
 use Mojolicious::Lite;
 use DBI;
-use List::Util qw/sum/;
+use List::Util qw/sum first/;
 use List::MoreUtils qw/pairwise/;
 use JSON;
 
 use DDP;
+use Path::Tiny;
 
 
 post '/api/checkout' => sub {
@@ -103,23 +106,17 @@ sub optimize_orders_and_coupons {
   # 価格が同じ場合は, クーポンの使用枚数が少なくなるセットのみ抽出
   $available_sets = [ grep { $_->[4] >= 0 || ($_->[4] == 0 && $_->[5] > 0) } @$available_sets ];
 
-  # 全セットが適用できるかチェック
-  my %cnt = ();
-  for my $set ( @{ $available_sets } ) {
-    $cnt{ $set->[1] }++;  $cnt{ $set->[2] }++;  $cnt{ $set->[3] }++;
-  }
-  my $f_select_sets = grep { $orders->{$_} < $cnt{$_} } keys %cnt;
-
-  # 全セットが適用できなければ最適化
-  if ( $f_select_sets ) {
-    # どのセットを適用するか最適化問題を解く
-    $available_sets = optimize_set_menu($orders, $coupons, $available_sets);
-  }
+  # どのセットを適用するか最適化問題を解く
+  # 各セットの [6] に, そのセットの適用数が格納される
+  $available_sets = optimize_set_menu($orders, $coupons, $available_sets);
 
   # 品目の決定 (単品を減らして, セットを増やす)
   for my $set ( @$available_sets ) {
-    $orders->{ $set->[0] }++;
-    $orders->{ $set->[1] }--;  $orders->{ $set->[2] }--;  $orders->{ $set->[3] }--;
+    my $num_set = $set->[6];
+    $orders->{ $set->[0] } += $num_set;
+    $orders->{ $set->[1] } -= $num_set;
+    $orders->{ $set->[2] } -= $num_set;
+    $orders->{ $set->[3] } -= $num_set;
   }
 }
 
@@ -245,53 +242,75 @@ EOF
 
 
 sub optimize_set_menu {
+  # 今回のセットの組合せ上, greedy に選択しても問題はないと考えられるが,
+  # セットパターンの増加を考慮して整数線形計画問題を解く
+  # (実行にはソルバ 'lp_solve' が必要)
+
   my ($orders, $coupons, $available_sets) = @_;
 
-  # NOTE:
-  #   本来は整数線形計画問題として解くべきだが,
-  #   Gist に上げる都合で, (時間はかかるが) 素朴な探索を行う.
+  path('./opt.lp')->spew(
+    make_lp_file($orders, $coupons, $available_sets)
+  );
 
-  my @best_selected_sets = ();
-  my $best_value_reduction = 0;
-  my $best_coupons_reduction = 0;
+  die "command not found: lp_solve" if not -f 'lp_solve/lp_solve';
 
-  # ビット列をセットの適用パターンとして, 最適パターンを求める
-  my $num_sets = scalar @$available_sets;
-  for ( 1 .. (2 ** $num_sets - 1) ) {
-    my $pattern_str   = sprintf "%0${num_sets}b", $_; # ビット列変換
-    my @set_pattern = split '', $pattern_str;       # 各ビットを要素とする配列
+  # lp_solve を利用して解く
+  my $res_opt = qx|lp_solve/lp_solve opt.lp|;
+  my %assign = ($res_opt =~ m/assign_(\d+).*?(\d+)/g);      # 出力のパース
+  $assign{$_} == 0 and delete $assign{$_} for keys %assign; # 適用しないセットの削除
 
-    # 対応する @set_pattern の要素が 1 となるセットのみ抽出
-    my @selected_sets = pairwise { $a ? $b : () } @set_pattern, @$available_sets;
-
-    # 適用するセットから, 必要な品目数と価格&クーポン数削減を求める
-    my %necessary_items = ();
-    my $value_reduction = 0;
-    my $coupons_reduction = 0;
-
-    for my $set ( @selected_sets ) {
-      $necessary_items{ $set->[1] }++;
-      $necessary_items{ $set->[2] }++;
-      $necessary_items{ $set->[3] }++;
-      $value_reduction   += $set->[4];
-      $coupons_reduction += $set->[5];
-    }
-
-    # セットに必要な品目数が足りているかチェック
-    my @insufficient_items = grep { $necessary_items{$_} > $orders->{$_} } keys %necessary_items;
-    next if @insufficient_items;        # 不足していれば次の候補へ
-
-    # 安いかどうか → 同じならクーポンで
-    if ( $value_reduction > $best_value_reduction
-     || ($value_reduction == $best_value_reduction && $coupons_reduction > $best_coupons_reduction)
-    ) {
-      @best_selected_sets = @selected_sets;
-      $best_value_reduction = $value_reduction;
-      $best_coupons_reduction = $coupons_reduction;
-    }
+  # assign されているもののみ抽出
+  my @best_selected_sets;
+  for my $set_id ( keys %assign ) {
+    my $tmp = $available_sets->[$set_id];
+    push @$tmp, $assign{$set_id};
+    push @best_selected_sets, $tmp;
   }
 
   return \@best_selected_sets;
+}
+
+
+sub make_lp_file {
+  my ($orders, $coupons, $available_sets) = @_;
+
+  my @lp = ();
+
+  # [ 評価式 ]
+  push @lp, 'max:';
+  # 価格の低下量 (クーポンよりも優先するため, 1000倍して評価)
+  while ( my ($idx, $set) = each @$available_sets ) {
+    push @lp, (sprintf '  + %5d000  assign_%05d', $set->[4], $idx);
+  }
+  # クーポン使用数の低下量
+  while ( my ($idx, $set) = each @$available_sets ) {
+    push @lp, (sprintf '  + %7d  assign_%05d', $set->[5], $idx);
+  }
+  push @lp, ';';
+  push @lp, "\n";
+
+
+  # [ 制約条件 ]
+  # セット要素の個数
+  my %necessary_items = map { $_->[1] => 1, $_->[2] => 1, $_->[3] => 1 } @$available_sets;
+  for my $item_id ( sort keys %necessary_items ) {
+    push @lp, "st_${item_id}:";
+    while ( my ($idx, $set) = each @$available_sets ) {
+      push @lp, (sprintf '  + assign_%05d', $idx)
+        if $set->[1] == $item_id || $set->[2] == $item_id || $set->[3] == $item_id;
+    }
+    push @lp, '  <= ' . $orders->{$item_id};
+    push @lp, ';';
+    push @lp, "\n";
+  }
+
+  # 整数制約
+  for my $idx ( 0 .. $#$available_sets ) {
+    push @lp, (sprintf 'int assign_%05d;', $idx);
+  }
+  push @lp, "\n";
+
+  return (join "\n", @lp);
 }
 
 ####################  for debug  ####################
