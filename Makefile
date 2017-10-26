@@ -1,3 +1,6 @@
+start_server:
+	morbo level2.pl
+
 test:
 	prove
 

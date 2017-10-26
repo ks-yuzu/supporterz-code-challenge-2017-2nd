@@ -1,0 +1,286 @@
+=head2 Thu Oct 26 17:51:00 2017: C<Module> L<Mojolicious|Mojolicious>
+
+=over 4
+
+=item *
+
+C<installed into: /home/yuzu/Dropbox/supporterzCodeChallenge/myapp/deps/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 7.48>
+
+=item *
+
+C<EXE_FILES: script/hypnotoad script/mojo script/morbo>
+
+=back
+
+=head2 Thu Oct 26 17:51:03 2017: C<Module> L<Path::Tiny|Path::Tiny>
+
+=over 4
+
+=item *
+
+C<installed into: /home/yuzu/Dropbox/supporterzCodeChallenge/myapp/deps/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.104>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Oct 26 17:51:08 2017: C<Module> L<JSON|JSON>
+
+=over 4
+
+=item *
+
+C<installed into: /home/yuzu/Dropbox/supporterzCodeChallenge/myapp/deps/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 2.94>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Oct 26 17:52:06 2017: C<Module> L<DBI|DBI>
+
+=over 4
+
+=item *
+
+C<installed into: /home/yuzu/Dropbox/supporterzCodeChallenge/myapp/deps/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.637>
+
+=item *
+
+C<EXE_FILES: dbiproxy dbiprof dbilogstrip>
+
+=back
+
+=head2 Thu Oct 26 17:52:08 2017: C<Module> L<Test::LeakTrace|Test::LeakTrace>
+
+=over 4
+
+=item *
+
+C<installed into: /home/yuzu/Dropbox/supporterzCodeChallenge/myapp/deps/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.16>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Oct 26 17:52:09 2017: C<Module> L<Exporter::Tiny|Exporter::Tiny>
+
+=over 4
+
+=item *
+
+C<installed into: /home/yuzu/Dropbox/supporterzCodeChallenge/myapp/deps/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.000000>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Oct 26 17:52:18 2017: C<Module> L<List::MoreUtils::XS|List::MoreUtils::XS>
+
+=over 4
+
+=item *
+
+C<installed into: /home/yuzu/Dropbox/supporterzCodeChallenge/myapp/deps/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.426>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Oct 26 17:52:29 2017: C<Module> L<List::MoreUtils|List::MoreUtils>
+
+=over 4
+
+=item *
+
+C<installed into: /home/yuzu/Dropbox/supporterzCodeChallenge/myapp/deps/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.426>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Oct 26 17:58:33 2017: C<Module> L<Importer|Importer>
+
+=over 4
+
+=item *
+
+C<installed into: /home/yuzu/Dropbox/supporterzCodeChallenge/myapp/deps/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.024>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Oct 26 17:58:46 2017: C<Module> L<Test::Simple|Test::Simple>
+
+=over 4
+
+=item *
+
+C<installed into: /home/yuzu/Dropbox/supporterzCodeChallenge/myapp/deps/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.302106>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Oct 26 17:58:52 2017: C<Module> L<Sub::Info|Sub::Info>
+
+=over 4
+
+=item *
+
+C<installed into: /home/yuzu/Dropbox/supporterzCodeChallenge/myapp/deps/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.002>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Oct 26 17:58:53 2017: C<Module> L<Term::Table|Term::Table>
+
+=over 4
+
+=item *
+
+C<installed into: /home/yuzu/Dropbox/supporterzCodeChallenge/myapp/deps/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.012>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Oct 26 17:59:00 2017: C<Module> L<Test2::Suite|Test2::Suite>
+
+=over 4
+
+=item *
+
+C<installed into: /home/yuzu/Dropbox/supporterzCodeChallenge/myapp/deps/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.000083>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+

@@ -9,6 +9,8 @@ use warnings;
 use utf8;
 use open IO => qw/:encoding(UTF-8) :std/;
 
+use lib './lib';
+
 use Mojolicious::Lite;
 use DBI;
 use List::Util qw/sum first/;
