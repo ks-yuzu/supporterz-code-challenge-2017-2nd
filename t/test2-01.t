@@ -5,7 +5,6 @@ use Test2::Plugin::UTF8;
 use LWP::UserAgent;
 use Path::Tiny;
 use JSON;
-use DDP;
 
 use FindBin;
 $FindBin::Script =~ /^test(.*).t$/ or ok '0', 'invalid test file name';
