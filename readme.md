@@ -33,7 +33,7 @@
    - $ perl -I './deps/lib/perl5' ./deps/bin/morbo level2.pl        (make server_start でも可)
 3. テストの実行
    - $ prove -I './deps/lib/perl5'                                  (普通はこちら. make test でも可)
-   - $ for i in `ls t/*.t`; do; perl -I './deps/lib/perl5' $i; done (prove が動かなければこちら)
+   - $ for i in $(ls t/*.t); do; perl -I './deps/lib/perl5' $i; done (prove が動かなければこちら)
 
 
 ## 同梱のモジュールを使用しない (CPAN が使える環境の) 場合
