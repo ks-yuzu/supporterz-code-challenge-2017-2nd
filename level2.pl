@@ -9,8 +9,7 @@ use warnings;
 use utf8;
 use open IO => qw/:encoding(UTF-8) :std/;
 
-use lib './lib';
-use lib './lib/x86_64-linux';
+use lib './deps/lib/perl5';
 
 use Mojolicious::Lite;
 use DBI;
