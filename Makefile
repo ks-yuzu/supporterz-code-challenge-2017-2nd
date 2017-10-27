@@ -1,8 +1,14 @@
 start_server:
-	bin/morbo level2.pl
+	perl -I 'deps/lib/perl5' ./bin/morbo level2.pl
 
 test:
-	prove -Ilib
+	prove -I 'deps/lib/perl5'
+
+test_without_prove:
+	for i in `ls t/*.t`; do; perl -I 'deps/lib/perl5' $i; done
+
+rebuild_dependent_files:
+	rm -rf deps && ./bin/cpanm --local-lib 'deps' --installdeps .
 
 dump_all:
 	@echo '[items]'
