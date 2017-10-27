@@ -1,4 +1,4 @@
-#!/home/yuzu/.plenv/versions/5.24.1/bin/perl5.24.1
+#!/usr/bin/env perl
 use Mojo::Base -strict;
 
 use Mojo::Server::Hypnotoad;
