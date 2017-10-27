@@ -1,5 +1,6 @@
 requires 'Mojolicious::Lite';
 requires 'DBI';
+requires 'DBD::SQLite';
 requires 'List::Util';
 requires 'List::MoreUtils';
 requires 'JSON';

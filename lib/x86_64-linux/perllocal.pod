@@ -284,3 +284,25 @@ C<EXE_FILES: >
 
 =back
 
+=head2 Fri Oct 27 18:38:45 2017: C<Module> L<DBD::SQLite|DBD::SQLite>
+
+=over 4
+
+=item *
+
+C<installed into: /home/yuzu/Dropbox/supporterzCodeChallenge/myapp/deps/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.54>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
