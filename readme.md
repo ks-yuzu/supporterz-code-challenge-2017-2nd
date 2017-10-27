@@ -6,19 +6,21 @@
 
 # 概要
 
- Code Challenge 2017 2nd の Level.2 のコードです.
- Gist はディレクトリが push できないため, GitHub にも置いています.
+ Code Challenge 2017 2nd の Level.2 のコードです.  
+ Gist はディレクトリが push できないため, GitHub にも置いています.  
    https://github.com/ks-yuzu/supporterz-code-challenge-2017-2nd
 
 
 # 依存ファイルについて
 - Perl のモジュール
-  
-    lib ディレクトリ内に全て同梱しています.
+  + lib ディレクトリ内に全て同梱しています
+  + うまく動作しない時は, 次のコマンドで依存モジュールをリビルドしてください  
+    $ rm -rf deps && ./bin/cpanm --local-lib 'deps' --installdeps .
   
 - lp_solve (ソルバ)
 
-    lp_solve ディレクトリ内に同梱しています.
+    lp\_solve ディレクトリ内に同梱しています.  
+    (x86\_64\_linux 用)
 
 
 # 実行方法
@@ -26,15 +28,15 @@
 
 1. 圧縮ファイルを解凍 (ディレクトリが push できないため)
 2. サーバの起動
-   - $ bin/morbo level2.pl  (make server_start でも可)
+   - $ perl -I 'deps/lib/perl5' ./bin/morbo level2.pl             (make server_start でも可)
 3. テストの実行
-   - $ prove -Ilib                                  (普通はこちら. make test でも可)
-   - $ for i in `ls t/*.t`; do; perl -Ilib $i; done (prove が動かなければこちら)
+   - $ prove -I 'deps/lib/perl5'                                  (普通はこちら. make test でも可)
+   - $ for i in `ls t/*.t`; do; perl -I 'deps/lib/perl5' $i; done (prove が動かなければこちら)
 
 ## GitHub から取得した場合
 
 1. サーバの起動
-   - $ bin/morbo level2.pl  (make server_start でも可)
-2. (作成した) テストの実行4. 
-   - $ prove -Ilib                                  (普通はこちら. make test でも可)
-   - $ for i in `ls t/*.t`; do; perl -Ilib $i; done (prove が動かなければこちら)
+   - $ perl -I 'deps/lib/perl5' ./bin/morbo level2.pl             (make server_start でも可)
+2. テストの実行
+   - $ prove -I 'deps/lib/perl5'                                  (普通はこちら. make test でも可)
+   - $ for i in `ls t/*.t`; do; perl -I 'deps/lib/perl5' $i; done (prove が動かなければこちら)

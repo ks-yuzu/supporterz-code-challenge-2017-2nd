@@ -1,4 +1,5 @@
 requires 'Mojolicious::Lite';
+requires 'IO::Socket::IP';
 requires 'DBI';
 requires 'DBD::SQLite';
 requires 'List::Util';
