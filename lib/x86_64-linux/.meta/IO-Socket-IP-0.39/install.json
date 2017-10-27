@@ -1,0 +1,1 @@
+{"pathname":"P/PE/PEVANS/IO-Socket-IP-0.39.tar.gz","dist":"IO-Socket-IP-0.39","version":"0.39","name":"IO::Socket::IP","provides":{"IO::Socket::IP":{"version":"0.39","file":"lib/IO/Socket/IP.pm"}},"target":"IO::Socket::IP"}
