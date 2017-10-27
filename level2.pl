@@ -4,7 +4,7 @@
 #   The repository containing all files including DB data and tests is here:
 #   https://github.com/ks-yuzu/supporterz-code-challenge-2017-2nd
 
-use v5.24;
+use v5.12;  # instead of 'use v5.24';
 use warnings;
 use utf8;
 use open IO => qw/:encoding(UTF-8) :std/;
