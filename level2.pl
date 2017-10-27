@@ -10,6 +10,7 @@ use utf8;
 use open IO => qw/:encoding(UTF-8) :std/;
 
 use lib './lib';
+use lib './lib/x86_64-linux';
 
 use Mojolicious::Lite;
 use DBI;
