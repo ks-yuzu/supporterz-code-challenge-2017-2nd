@@ -1,1 +1,1 @@
-{"pathname":"E/EX/EXODIST/Importer-0.024.tar.gz","version":"0.024","provides":{"Importer":{"version":"0.024","file":"lib/Importer.pm"}},"target":"Importer","dist":"Importer-0.024","name":"Importer"}
+{"dist":"Importer-0.024","provides":{"Importer":{"version":"0.024","file":"lib/Importer.pm"}},"name":"Importer","version":"0.024","target":"Importer","pathname":"E/EX/EXODIST/Importer-0.024.tar.gz"}

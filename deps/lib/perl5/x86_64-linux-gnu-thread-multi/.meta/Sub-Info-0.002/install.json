@@ -1,1 +1,1 @@
-{"name":"Sub::Info","dist":"Sub-Info-0.002","target":"Sub::Info","provides":{"Sub::Info":{"version":"0.002","file":"lib/Sub/Info.pm"}},"pathname":"E/EX/EXODIST/Sub-Info-0.002.tar.gz","version":"0.002"}
+{"target":"Sub::Info","version":"0.002","name":"Sub::Info","provides":{"Sub::Info":{"file":"lib/Sub/Info.pm","version":"0.002"}},"dist":"Sub-Info-0.002","pathname":"E/EX/EXODIST/Sub-Info-0.002.tar.gz"}

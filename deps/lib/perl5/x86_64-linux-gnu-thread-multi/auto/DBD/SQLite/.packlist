@@ -10,10 +10,3 @@
 /home/yuzu/myapp/deps/lib/perl5/x86_64-linux-gnu-thread-multi/auto/share/dist/DBD-SQLite/sqlite3.c
 /home/yuzu/myapp/deps/lib/perl5/x86_64-linux-gnu-thread-multi/auto/share/dist/DBD-SQLite/sqlite3.h
 /home/yuzu/myapp/deps/lib/perl5/x86_64-linux-gnu-thread-multi/auto/share/dist/DBD-SQLite/sqlite3ext.h
-/home/yuzu/myapp/deps/man/man3/DBD::SQLite.3pm
-/home/yuzu/myapp/deps/man/man3/DBD::SQLite::Constants.3pm
-/home/yuzu/myapp/deps/man/man3/DBD::SQLite::Cookbook.3pm
-/home/yuzu/myapp/deps/man/man3/DBD::SQLite::Fulltext_search.3pm
-/home/yuzu/myapp/deps/man/man3/DBD::SQLite::VirtualTable.3pm
-/home/yuzu/myapp/deps/man/man3/DBD::SQLite::VirtualTable::FileContent.3pm
-/home/yuzu/myapp/deps/man/man3/DBD::SQLite::VirtualTable::PerlData.3pm
