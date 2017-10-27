@@ -1,7 +1,9 @@
 # TL;DR
 
-  1. make server_start
-  2. make test
+  - Code Challenge 2017 2nd の Level.2
+  - 実行方法
+    1. make server_start
+    2. make test
 
 
 # 概要
