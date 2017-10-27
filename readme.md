@@ -8,8 +8,8 @@
 
 # 概要
 
- Code Challenge 2017 2nd の Level.2 のコードです.  
- Gist はディレクトリが push できないため, GitHub にも置いています.  
+ Code Challenge 2017 2nd の Level.2 のコードです  
+ Gist はディレクトリが push できないため, GitHub にも置いています  
    https://github.com/ks-yuzu/supporterz-code-challenge-2017-2nd
 
 
@@ -21,8 +21,9 @@
   
 - lp_solve (ソルバ)
 
-    lp\_solve ディレクトリ内に同梱しています.  
-    (x86\_64\_linux 用)
+    - x86\_64\_linux 用を lp\_solve ディレクトリ内に同梱しています  
+    - その他の環境の場合は以下のリンクから DL できます  
+      https://sourceforge.net/projects/lpsolve/files/lpsolve/5.5.2.5/
 
 
 # 実行方法
